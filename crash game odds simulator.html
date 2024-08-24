@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crash Game Odds Generator</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+        .container {
+            background-color: #fff;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        h1, h2 {
+            color: #2c3e50;
+        }
+        input, button {
+            margin: 10px 0;
+            padding: 10px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        button {
+            background-color: #3498db;
+            color: #fff;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #2980b9;
+        }
+        #result {
+            margin-top: 20px;
+            background-color: #ecf0f1;
+            padding: 15px;
+            border-radius: 5px;
+        }
+        .info {
+            background-color: #e8f6fe;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 20px;
+        }
+        .warning {
+            color: #e74c3c;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Crash Game Odds Generator</h1>
+        <p>Enter a Round ID to generate simulated game odds and hash information.</p>
+        
+        <div>
+            <label for="roundId">Round ID:</label>
+            <input type="number" id="roundId" value="225775" min="1">
+        </div>
+        <button onclick="generateOdds()">Generate Odds</button>
+        
+        <div id="result"></div>
+        
+        <div class="info">
+            <h2>How it works</h2>
+            <ol>
+                <li>Enter a Round ID (a positive integer).</li>
+                <li>The app generates a pseudo-random salt and random part based on the Round ID.</li>
+                <li>It creates a key using the format: RoundID_Odds_Crash_RandomPart.</li>
+                <li>The app calculates the SHA-512 HMAC hash using the key and salt.</li>
+                <li>The odds are determined based on the Round ID, ensuring they're always ≥ 1.00.</li>
+            </ol>
+            <p class="warning">Note: This is a simulation based on provided examples and may not match the exact algorithm used by real crash games.</p>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/js-sha512/0.8.0/sha512.min.js"></script>
+    <script>
+        function generateRandomString(length) {
+            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+            let result = '';
+            for (let i = 0; i < length; i++) {
+                result += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            return result;
+        }
+
+        function generateOdds() {
+            const roundId = document.getElementById('roundId').value;
+            
+            if (roundId <= 0) {
+                alert("Please enter a positive integer for the Round ID.");
+                return;
+            }
+
+            const salt = generateRandomString(32) + '==';
+            const randomPart = generateRandomString(30);
+
+            const seedNumber = parseInt(roundId) % 100000;
+            let odds = 1 + (seedNumber % 900) / 100;
+            odds = Math.round(odds * 100) / 100;
+
+            const key = `${roundId}_${odds.toFixed(2)}_Crash_${randomPart}`;
+            const hash = sha512.hmac(salt, key);
+
+            const resultElement = document.getElementById('result');
+            resultElement.innerHTML = `
+                <h2>Generated Result</h2>
+                <p><strong>Round ID:</strong> ${roundId}</p>
+                <p><strong>Generated Salt:</strong> ${salt}</p>
+                <p><strong>Generated Key:</strong> ${key}</p>
+                <p><strong>Generated Hash:</strong> ${hash}</p>
+                <p><strong>Generated Odds:</strong> ${odds.toFixed(2)}</p>
+            `;
+        }
+    </script>
+</body>
+</html>
